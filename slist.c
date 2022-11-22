@@ -1,8 +1,10 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "slist.h"
 
 void dbllist_init(dbllist_t *list)  {
-    list = (dbllist_t *) calloc(1,sizeof(dbllist_t));
+    if (!list)
+        return;
     dbllist_head(list) = NULL;
     dbllist_tail(list) = NULL;
     dbllist_size(list) = 0;
@@ -10,6 +12,7 @@ void dbllist_init(dbllist_t *list)  {
 
 void dbllist_destroy(dbllist_t *list,dbllist_destroy_t des){
 
+    
     dbllist_node_t *curNode = dbllist_head(list);
     dbllist_node_t *next;
     while(curNode){
@@ -25,13 +28,13 @@ void dbllist_destroy(dbllist_t *list,dbllist_destroy_t des){
 int dbllist_append(dbllist_t *list,void *node){
 
     if(!list)
-        return -1;
+        return ERROR;
 
     int curSize = dbllist_size(list);
     //Create newNode and store node data inside it while setting next and prev pointers to NULL
     dbllist_node_t *newNode = (dbllist_node_t *) calloc(1,sizeof(dbllist_node_t));
     if (!newNode)
-        return -1;
+        return ERROR;
 
     dbllist_next(newNode) = NULL;
     dbllist_prev(newNode) = NULL;
@@ -49,18 +52,18 @@ int dbllist_append(dbllist_t *list,void *node){
         dbllist_tail(list) = newNode; // set newNode as new tail of list
     }
     dbllist_size(list) = curSize+1; //increase list size by 1
-    return 0;
+    return SUCCESS;
 }
 
 int dbllist_prepend(dbllist_t *list,void *node){
     if(!list)
-        return -1;
+        return ERROR;
 
     int curSize = dbllist_size(list);
     //Create newNode and store node data inside it while setting next and prev pointers to NULL
     dbllist_node_t *newNode = (dbllist_node_t *) calloc(1,sizeof(dbllist_node_t));
     if (!newNode)
-        return -1;
+        return ERROR;
 
     dbllist_next(newNode) = NULL;
     dbllist_prev(newNode) = NULL;
@@ -78,7 +81,7 @@ int dbllist_prepend(dbllist_t *list,void *node){
         dbllist_head(list) = newNode; // Set head of list to newPointer
     }
     dbllist_size(list) = curSize+1; //increase list size by 1
-    return 0;
+    return SUCCESS;
 }
 
 int dbllist_remove(dbllist_t *list, dbllist_node_t* node ,dbllist_destroy_t des){

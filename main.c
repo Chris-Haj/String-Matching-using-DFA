@@ -4,11 +4,9 @@
 
 int main() {
 
-    int *test;
-    test = (int *) calloc(1,sizeof(int));
-    *test = 3;
-    printf("%d %d",sizeof(test),*test);
-
+    int n=0;
+    if(n)
+        printf("hello");
 
     return 0;
 }

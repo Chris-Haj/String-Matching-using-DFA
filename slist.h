@@ -16,6 +16,9 @@
 #define dbllist_prev(n) n->prev
 #define dbllist_data(n) n->data
 
+#define ERROR -1
+#define SUCCESS 0
+
 //! The definition of a double linked list node
 struct dbllist_node
 {

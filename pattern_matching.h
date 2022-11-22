@@ -12,9 +12,13 @@
 #define PATTERN_MATCHING_H
 
 typedef unsigned int pm_int_t;
-typedef unsigned int size_t;
+
 
 #define PM_CHARACTERS 256
+#define root(pat) pat->zerostate
+#define extractSymbolFromNode(n) ((pm_labeled_edge_t *) dbllist_data(n))->label
+#define extractStateFromNode(n) ((pm_labeled_edge_t *) dbllist_data(n))->state
+
 
 
 /* Represents a single labeled edge. */
