@@ -15,6 +15,7 @@
 #define dbllist_next(n) n->next
 #define dbllist_prev(n) n->prev
 #define dbllist_data(n) n->data
+#define alloc(type) (type *) calloc(1, sizeof(type))
 
 #define ERROR -1
 #define SUCCESS 0
