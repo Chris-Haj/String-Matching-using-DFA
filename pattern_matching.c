@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "pattern_matching.h"
 
 int pm_init(pm_t *pat) {
@@ -25,18 +26,20 @@ int pm_addstring(pm_t *pat, unsigned char *symbol, size_t n) {
     if (n == 0)
         return SUCCESS;
     pm_state_t *startS = root(pat);
-    pm_state_t *cur = startS, *prev,*next;
+    pm_state_t *cur = startS, *prev =NULL,*next=NULL;
     for (int i = 0; i < n; i++) {
         prev = cur;
         cur = pm_goto_get(cur,symbol[i]);
         if(!cur){
             pm_goto_set(prev,symbol[i],next);
-            cur = (pm_state_t *) prev->_transitions->tail->data;
+            cur = ((pm_labeled_edge_t *) prev->_transitions->tail->data)->state;
             cur->depth = prev->depth+1;
-            cur->id = root(pat)->id++;
-            cur->_transitions=NULL;
+            cur->id = pat->newstate++;
             cur->output=NULL;
             cur->fail=NULL;
+            cur->_transitions=NULL;
+            unsigned char c =((pm_labeled_edge_t *)(prev->_transitions->head->data))->label;
+            printf("the letter is %c\n",c);
         }
     }
 
@@ -53,14 +56,14 @@ int pm_goto_set(pm_state_t *from_state, unsigned char symbol, pm_state_t *to_sta
     dbllist_t *listOfState = from_state->_transitions;
     if(!listOfState){
         from_state->_transitions = alloc(dbllist_t);
+        listOfState = from_state->_transitions;
         dbllist_init(listOfState);
+
     }
     pm_labeled_edge_t *newEdge = alloc(pm_labeled_edge_t);
     newEdge->state = alloc(pm_state_t);
     newEdge->label = symbol;
     dbllist_append(listOfState,newEdge);
-    to_state = newEdge->state;
-
 
 }
 

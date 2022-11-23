@@ -34,9 +34,9 @@ int dbllist_append(dbllist_t *list,void *node){
     int curSize = dbllist_size(list);
     //Create newNode and store node data inside it while setting next and prev pointers to NULL
     dbllist_node_t *newNode = alloc(dbllist_node_t);
-    if (!newNode)
+    if (!newNode) {
         return -1;
-
+    }
     dbllist_next(newNode) = NULL;
     dbllist_prev(newNode) = NULL;
     dbllist_data(newNode) = node;
