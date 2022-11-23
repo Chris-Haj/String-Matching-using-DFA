@@ -31,9 +31,12 @@ int pm_addstring(pm_t *pat, unsigned char *symbol, size_t n) {
         cur = pm_goto_get(cur,symbol[i]);
         if(!cur){
             pm_goto_set(prev,symbol[i],next);
-            cur=next;
+            cur = (pm_state_t *) prev->_transitions->tail->data;
             cur->depth = prev->depth+1;
             cur->id = root(pat)->id++;
+            cur->_transitions=NULL;
+            cur->output=NULL;
+            cur->fail=NULL;
         }
     }
 
