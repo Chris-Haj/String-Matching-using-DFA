@@ -68,9 +68,9 @@ int pm_goto_set(pm_state_t *from_state, unsigned char symbol, pm_state_t *to_sta
 }
 
 pm_state_t *pm_goto_get(pm_state_t *state, unsigned char symbol) {
-    dbllist_t *ListOfState = state->_transitions;
-    if (!ListOfState)
+    if (!state || !state->_transitions )
         return NULL;
+    dbllist_t *ListOfState = state->_transitions;
     dbllist_node_t *curNode = dbllist_head(ListOfState);
     while (curNode) {
         if (symbol == SymbolFromNode(curNode))
@@ -86,6 +86,28 @@ dbllist_t *pm_fsm_search(pm_state_t *state, unsigned char *symbol, size_t size) 
     return SUCCESS;
 }
 
-void pm_destroy(pm_t *pat) {
+void destroyer(pm_state_t *state){
 
+    if(state->_transitions){
+        dbllist_node_t *node = dbllist_head(state->_transitions);
+        dbllist_node_t *next;
+        while(node){
+            pm_state_t *child = StateFromNode(node);
+            destroyer(child);
+            free(dbllist_data(node));
+            next = dbllist_next(node);
+            free(node);
+            node = next;
+        }
+        free(state->_transitions);
+        free(state->output);
+    }
+    free(state);
 }
+
+void pm_destroy(pm_t *pat) {
+    destroyer(pat->zerostate);
+    free(pat);
+}
+
+
