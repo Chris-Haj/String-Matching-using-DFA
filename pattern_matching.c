@@ -7,7 +7,7 @@ int pm_init(pm_t *pat) {
     if (!pat)
         return ERROR;
     pat->newstate = 0;
-    root(pat) = calloc(1, sizeof(pm_state_t));
+    root(pat) = alloc(pm_state_t);
     if (!root(pat))
         return ERROR;
 
