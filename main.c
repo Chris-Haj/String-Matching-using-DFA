@@ -2,18 +2,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pattern_matching.h"
+#define alloc(type) (type *) malloc(sizeof(type))
+
 
 int main() {
 
-    dbllist_t *list = alloc(dbllist_t);
     pm_t *tree = alloc(pm_t);
-    dbllist_init(list);
     pm_init(tree);
-    unsigned char *string = calloc(3,sizeof(char));
-    unsigned char *string2 = calloc(3,sizeof(char));
-    strcpy(string,"ab");
-    strcpy(string2,"cd");
-    pm_addstring(tree,string,2);
-    pm_addstring(tree,string2,2);
+    unsigned char **strings = (unsigned char **) malloc(4*sizeof(unsigned char *));
+    for(int i=0;i<4;i++){
+        strings[i] = (unsigned char *) malloc(4*sizeof(unsigned char));
+    }
+    strcpy(strings[0],"abc");
+    strcpy(strings[1],"bca");
+    strcpy(strings[2],"cab");
+    strcpy(strings[3],"acb");
+    for (int i = 0; i < 4; ++i) {
+        pm_addstring(tree,strings[i],strlen(strings[i]));
+    }
+    pm_makeFSM(tree);
+    pm_destroy(tree);
+    free(tree);
+    for (int i = 0; i < 4; ++i) {
+        free(strings[i]);
+    }
+    free(strings);
+
     return 0;
 }
