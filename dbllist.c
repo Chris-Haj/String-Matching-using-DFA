@@ -90,19 +90,19 @@ int dbllist_remove(dbllist_t *list, dbllist_node_t *node, dbllist_destroy_t des)
 
     if (!list || !node)
         return ERROR;
-    if (node == dbllist_head(list)) {
-        dbllist_head(list) = dbllist_next(node);
-    } else if (node == dbllist_tail(list)) {
-        dbllist_tail(list) = dbllist_prev(node);
-    }
-
-    dbllist_node_t *prev = dbllist_prev(node);
-    dbllist_node_t *next = dbllist_next(node);
-    dbllist_prev(next) = prev;
-    dbllist_next(prev) = next;
-
-    if(des == DBLLIST_FREE_DATA)
+    if (des == DBLLIST_FREE_DATA)
         free(dbllist_data(node));
+
+    if (node == dbllist_head(list))
+        dbllist_head(list) = dbllist_next(node);
+    else if (node == dbllist_tail(list))
+        dbllist_tail(list) = dbllist_prev(node);
+    else {
+        dbllist_node_t *prev = dbllist_prev(node);
+        dbllist_node_t *next = dbllist_next(node);
+        dbllist_prev(next) = prev;
+        dbllist_next(prev) = next;
+    }
     free(node);
     dbllist_size(list)--;
     return SUCCESS;

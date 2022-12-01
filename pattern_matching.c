@@ -8,15 +8,13 @@
 #define StateFromNode(n) ((pm_labeled_edge_t *) dbllist_data(n))->state
 #define alloc(type) (type *) malloc(sizeof(type))
 
-
 int pm_init(pm_t *pat) {
     if (!pat)
         return ERROR;
-    pat->newstate = 0;
+
     root(pat) = alloc(pm_state_t);
     if (!root(pat))
         return ERROR;
-
     pat->newstate = 0;
     root(pat)->id = root(pat)->depth = pat->newstate++;
     root(pat)->fail = NULL; //Root has no failure transition
@@ -57,7 +55,6 @@ int pm_addstring(pm_t *pat, unsigned char *symbol, size_t n) {
     //copy the input into our new char * so we can free it in the end.
     unsigned char *output = (unsigned char *) malloc((n + 1) * sizeof(unsigned char));
     memcpy(output, symbol, n + 1);
-//    strcpy((char *) output, (char *) symbol);
     if (dbllist_append(cur->output, output) == ERROR)
         return ERROR;
     return SUCCESS;
@@ -65,46 +62,43 @@ int pm_addstring(pm_t *pat, unsigned char *symbol, size_t n) {
 
 
 void FailureBetween(pm_state_t *root, pm_state_t *father, unsigned char symbol, pm_state_t *child) {
-    dbllist_node_t *curNode = dbllist_head(father->_transitions);
-    while (curNode) {
-        if (SymbolFromNode(curNode) == symbol) {
-            child->fail = father;
-            return;
-        }
-        curNode = dbllist_next(curNode);
+    pm_state_t *failure = pm_goto_get(father,symbol);
+    if (failure){
+        child->fail = failure;
+        printf("Setting f(%u) = %u\n",child->id, failure->id);
     }
-    child->fail = root;
+    else
+        child->fail = root;
 }
-
 
 int pm_makeFSM(pm_t *pat) {
 
+    if (!pat || !root(pat) || !root(pat)->_transitions)
+        return ERROR;
     pm_state_t *root = root(pat);
     dbllist_t *list = root->_transitions;
-    dbllist_t *stateHolder = alloc(dbllist_t);
+    dbllist_t *stateHolder = alloc(dbllist_t); // StateHolder will be used as queue to go through the states level by level (BFS)
     dbllist_init(stateHolder);
     dbllist_node_t *curNode = dbllist_head(list);
-    while (curNode) {
+    while (curNode) { //Loop to insert all states with depth = 1
         pm_state_t *state = StateFromNode(curNode);
         dbllist_append(stateHolder, state);
         state->fail = root;
         curNode = dbllist_next(curNode);
     }
     dbllist_node_t *queue = dbllist_head(stateHolder);
-    while (queue) {
-        pm_state_t *curState = StateFromNode(queue);
-        printf("%u\n",curState->id);
+    while (queue) { //Loop to go through queue
+        pm_state_t *curState = (pm_state_t *) dbllist_data(queue);
         dbllist_node_t *ChildrenStates = dbllist_head(curState->_transitions); //If curState has no transitions, ChildrenStates = NULL.
-        while (ChildrenStates) {
-            printf("Setting f(%u) = ", StateFromNode(queue)->id);
-            FailureBetween(root, StateFromNode(queue)->fail, SymbolFromNode(queue), StateFromNode(ChildrenStates));
-            dbllist_append(stateHolder, ChildrenStates);
+        while (ChildrenStates) { //Visit children of current state (head of queue)
+            FailureBetween(root, curState->fail, SymbolFromNode(ChildrenStates), StateFromNode(ChildrenStates)); //Connect between failure of current State and child state if failure requirements apply
+            dbllist_append(stateHolder, StateFromNode(ChildrenStates)); //Add children states of current state to queue
             ChildrenStates = dbllist_next(ChildrenStates);
         }
         queue = dbllist_next(queue);
-        dbllist_remove(list, dbllist_prev(queue), DBLLIST_LEAVE_DATA);
+        dbllist_remove(stateHolder,dbllist_head(stateHolder), DBLLIST_LEAVE_DATA); // Pop head of queue
     }
-
+    free(stateHolder);
     return SUCCESS;
 }
 
@@ -132,7 +126,7 @@ pm_state_t *pm_goto_get(pm_state_t *state, unsigned char symbol) {
             return StateFromNode(curNode);
         curNode = dbllist_next(curNode);
     }
-    return NULL;
+    return NULL; //return NULL if no state was found.
 }
 
 dbllist_t *pm_fsm_search(pm_state_t *state, unsigned char *symbol, size_t size) {
