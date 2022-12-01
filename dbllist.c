@@ -7,7 +7,6 @@
 
 void dbllist_init(dbllist_t *list) {
     if (!list) {
-        printf("list is NULL");
         return;
     }
     dbllist_head(list) = NULL;

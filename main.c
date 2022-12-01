@@ -9,21 +9,23 @@ int main() {
 
     pm_t *tree = alloc(pm_t);
     pm_init(tree);
-    unsigned char **strings = (unsigned char **) malloc(4*sizeof(unsigned char *));
-    for(int i=0;i<4;i++){
-        strings[i] = (unsigned char *) malloc(4*sizeof(unsigned char));
+    unsigned char **strings = (unsigned char **) malloc(6*sizeof(unsigned char *));
+    for(int i=0;i<6;i++){
+        strings[i] = (unsigned char *) malloc(8*sizeof(unsigned char));
     }
-    strcpy(strings[0],"abc");
-    strcpy(strings[1],"bca");
-    strcpy(strings[2],"cab");
-    strcpy(strings[3],"acb");
-    for (int i = 0; i < 4; ++i) {
+    strcpy(strings[0],"e");
+    strcpy(strings[1],"be");
+    strcpy(strings[2],"bd");
+    strcpy(strings[3],"bcd");
+    strcpy(strings[4],"cdbcab");
+    strcpy(strings[5],"bcaa");
+    for (int i = 0; i < 6; ++i) {
         pm_addstring(tree,strings[i],strlen(strings[i]));
     }
     pm_makeFSM(tree);
     pm_destroy(tree);
     free(tree);
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 6; ++i) {
         free(strings[i]);
     }
     free(strings);

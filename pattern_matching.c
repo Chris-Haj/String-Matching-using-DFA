@@ -44,6 +44,7 @@ int pm_addstring(pm_t *pat, unsigned char *symbol, size_t n) {
             dbllist_init(next->output);
             next->fail = NULL;
             //Call the pm goto set to create a new edge and state while also connecting the current state with the new one using the new edge
+            printf("Allocating state %u\n",pat->newstate);
             if (pm_goto_set(prev, symbol[i], next) == ERROR)
                 return ERROR;
             cur = next;
@@ -62,12 +63,16 @@ int pm_addstring(pm_t *pat, unsigned char *symbol, size_t n) {
 
 
 void FailureBetween(pm_state_t *root, pm_state_t *father, unsigned char symbol, pm_state_t *child) {
-    pm_state_t *failure = pm_goto_get(father,symbol);
-    if (failure){
+    pm_state_t *failure = pm_goto_get(father, symbol);
+    if (failure) {
         child->fail = failure;
-        printf("Setting f(%u) = %u\n",child->id, failure->id);
-    }
-    else
+        dbllist_node_t *curNode = dbllist_head(failure->output);
+        while (curNode) {
+            dbllist_append(child->output, dbllist_data(curNode));
+            curNode = dbllist_next(curNode);
+        }
+        printf("Setting f(%u) = %u\n", child->id, failure->id);
+    } else
         child->fail = root;
 }
 
@@ -77,7 +82,8 @@ int pm_makeFSM(pm_t *pat) {
         return ERROR;
     pm_state_t *root = root(pat);
     dbllist_t *list = root->_transitions;
-    dbllist_t *stateHolder = alloc(dbllist_t); // StateHolder will be used as queue to go through the states level by level (BFS)
+    dbllist_t *stateHolder = alloc(
+            dbllist_t); // StateHolder will be used as queue to go through the states level by level (BFS)
     dbllist_init(stateHolder);
     dbllist_node_t *curNode = dbllist_head(list);
     while (curNode) { //Loop to insert all states with depth = 1
@@ -89,14 +95,16 @@ int pm_makeFSM(pm_t *pat) {
     dbllist_node_t *queue = dbllist_head(stateHolder);
     while (queue) { //Loop to go through queue
         pm_state_t *curState = (pm_state_t *) dbllist_data(queue);
-        dbllist_node_t *ChildrenStates = dbllist_head(curState->_transitions); //If curState has no transitions, ChildrenStates = NULL.
+        dbllist_node_t *ChildrenStates = dbllist_head(
+                curState->_transitions); //If curState has no transitions, ChildrenStates = NULL.
         while (ChildrenStates) { //Visit children of current state (head of queue)
-            FailureBetween(root, curState->fail, SymbolFromNode(ChildrenStates), StateFromNode(ChildrenStates)); //Connect between failure of current State and child state if failure requirements apply
+            FailureBetween(root, curState->fail, SymbolFromNode(ChildrenStates), StateFromNode(
+                    ChildrenStates)); //Connect between failure of current State and child state if failure requirements apply
             dbllist_append(stateHolder, StateFromNode(ChildrenStates)); //Add children states of current state to queue
             ChildrenStates = dbllist_next(ChildrenStates);
         }
         queue = dbllist_next(queue);
-        dbllist_remove(stateHolder,dbllist_head(stateHolder), DBLLIST_LEAVE_DATA); // Pop head of queue
+        dbllist_remove(stateHolder, dbllist_head(stateHolder), DBLLIST_LEAVE_DATA); // Pop head of queue
     }
     free(stateHolder);
     return SUCCESS;
@@ -129,8 +137,42 @@ pm_state_t *pm_goto_get(pm_state_t *state, unsigned char symbol) {
     return NULL; //return NULL if no state was found.
 }
 
-dbllist_t *pm_fsm_search(pm_state_t *state, unsigned char *symbol, size_t size) {
-
+dbllist_t *pm_fsm_search(pm_state_t *state, unsigned char *symbol, size_t size) { // fail_state = failure, next = to_state
+    if (!state || !symbol || !size)
+        return NULL;
+    dbllist_t *matcher = alloc(dbllist_t);
+    if (!matcher)
+        return NULL;
+    dbllist_init(matcher);
+    pm_state_t *next;
+    for (int i = 0; i < size; ++i) {
+        next = pm_goto_get(state, symbol[i]);
+        pm_state_t *failure = next;
+        while (!next) {
+            if (!failure->depth) {
+                next = failure;
+                break;
+            }
+            failure = failure->fail; //Jump to next failure and attempt match
+            if (!failure) {
+                dbllist_destroy(matcher, DBLLIST_FREE_DATA);
+            }
+            next = pm_goto_get(failure, symbol[i]);
+        }
+        dbllist_t *outputs = next->output;
+        dbllist_node_t *curNode = dbllist_head(outputs);
+        pm_match_t *matchFinder;
+        while (curNode) { // While searching for similar outputs and current string, if found any pattern, create new match and assign its data according to indexes of substring
+            matchFinder = alloc(pm_match_t);
+            matchFinder->pattern = (char *) dbllist_data(curNode);
+            matchFinder->start_pos = (int) (i - strlen(matchFinder->pattern)) + 1;
+            matchFinder->end_pos = (int) (i);
+            matchFinder->fstate = next;
+            dbllist_append(matcher,matchFinder);
+            curNode = dbllist_next(curNode);
+        }
+        state = next;
+    }
     return SUCCESS;
 }
 
@@ -154,5 +196,6 @@ void destroyer(pm_state_t *state) { //Recursion function to destroy all tree
 }
 
 void pm_destroy(pm_t *pat) {
-    destroyer(pat->zerostate);
+    if (pat)
+        destroyer(pat->zerostate);
 }
