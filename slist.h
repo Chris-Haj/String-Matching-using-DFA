@@ -16,8 +16,6 @@
 #define dbllist_prev(n) n->prev
 #define dbllist_data(n) n->data
 
-#define ERROR -1
-#define SUCCESS 0
 
 //! The definition of a double linked list node
 struct dbllist_node
@@ -31,7 +29,7 @@ struct dbllist_node
 typedef struct dbllist_node dbllist_node_t;
 
 //! The definition of a double linked list
-struct dbllist
+struct slist
 {
 	dbllist_node_t *head; // Pointer to head of list
 	dbllist_node_t *tail; // Pointer to tail of list
@@ -39,7 +37,7 @@ struct dbllist
 };
 
 //! double linked list type
-typedef struct dbllist dbllist_t;
+typedef struct slist dbllist_t;
 
 
 //! Specifies whether dbllist_destroy should deallocate or not stored elements

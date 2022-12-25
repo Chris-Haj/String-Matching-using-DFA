@@ -7,6 +7,8 @@
 #define SymbolFromNode(n) ((pm_labeled_edge_t *) dbllist_data(n))->label
 #define StateFromNode(n) ((pm_labeled_edge_t *) dbllist_data(n))->state
 #define alloc(type) (type *) malloc(sizeof(type))
+#define SUCCESS 0
+#define ERROR (-1)
 
 int pm_init(pm_t *pat) {
     if (!pat)
@@ -25,7 +27,7 @@ int pm_init(pm_t *pat) {
     return SUCCESS;
 }
 
-int pm_addstring(pm_t *pat, unsigned char *symbol, size_t n) {
+int pm_addstring(pm_t *pat, unsigned char *symbol, _size_t n) {
 
     if (!pat)
         return ERROR;
@@ -44,7 +46,7 @@ int pm_addstring(pm_t *pat, unsigned char *symbol, size_t n) {
             dbllist_init(next->output);
             next->fail = NULL;
             //Call the pm goto set to create a new edge and state while also connecting the current state with the new one using the new edge
-            printf("Allocating state %u\n",pat->newstate);
+            printf("Allocating state %u\n", pat->newstate);
             if (pm_goto_set(prev, symbol[i], next) == ERROR)
                 return ERROR;
             cur = next;
@@ -63,7 +65,12 @@ int pm_addstring(pm_t *pat, unsigned char *symbol, size_t n) {
 
 
 void FailureBetween(pm_state_t *root, pm_state_t *father, unsigned char symbol, pm_state_t *child) {
-    pm_state_t *failure = pm_goto_get(father, symbol);
+    pm_state_t *failure;
+    while ((failure = pm_goto_get(father, symbol))==NULL) {
+        if(father == root)
+            break;
+        father = father->fail;
+    }
     if (failure) {
         child->fail = failure;
         dbllist_node_t *curNode = dbllist_head(failure->output);
@@ -72,7 +79,8 @@ void FailureBetween(pm_state_t *root, pm_state_t *father, unsigned char symbol, 
             curNode = dbllist_next(curNode);
         }
         printf("Setting f(%u) = %u\n", child->id, failure->id);
-    } else
+    }
+    else
         child->fail = root;
 }
 
@@ -137,7 +145,7 @@ pm_state_t *pm_goto_get(pm_state_t *state, unsigned char symbol) {
     return NULL; //return NULL if no state was found.
 }
 
-dbllist_t *pm_fsm_search(pm_state_t *state, unsigned char *symbol, size_t size) { // fail_state = failure, next = to_state
+dbllist_t *pm_fsm_search(pm_state_t *state, unsigned char *symbol, _size_t size) { // fail_state = failure, next = to_state
     if (!state || !symbol || !size)
         return NULL;
     dbllist_t *matcher = alloc(dbllist_t);
@@ -148,7 +156,7 @@ dbllist_t *pm_fsm_search(pm_state_t *state, unsigned char *symbol, size_t size) 
     for (int i = 0; i < size; ++i) {
         next = pm_goto_get(state, symbol[i]);
         pm_state_t *failure = next;
-        while (!next) {
+        while (next) {
             if (!failure->depth) {
                 next = failure;
                 break;
@@ -168,7 +176,7 @@ dbllist_t *pm_fsm_search(pm_state_t *state, unsigned char *symbol, size_t size) 
             matchFinder->start_pos = (int) (i - strlen(matchFinder->pattern)) + 1;
             matchFinder->end_pos = (int) (i);
             matchFinder->fstate = next;
-            dbllist_append(matcher,matchFinder);
+            dbllist_append(matcher, matchFinder);
             curNode = dbllist_next(curNode);
         }
         state = next;
@@ -181,7 +189,6 @@ void destroyer(pm_state_t *state) { //Recursion function to destroy all tree
         dbllist_node_t *stateNode = dbllist_head(state->_transitions); //Get first node of transitions
         dbllist_destroy(state->output, DBLLIST_FREE_DATA);//Free the output list of current state
         dbllist_node_t *next;
-
         while (stateNode) { //Loop through all nodes of transitions list that contain edges that contain pointers to next states
             pm_state_t *child = StateFromNode(stateNode); //Use macro to get state from current node
             destroyer(child); //Start recursive calls of child states

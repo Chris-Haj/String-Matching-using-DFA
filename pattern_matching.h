@@ -6,12 +6,13 @@
     
   */
 
-#include "dbllist.h"
+#include "slist.h"
 
 #ifndef PATTERN_MATCHING_H
 #define PATTERN_MATCHING_H
 
 typedef unsigned int pm_int_t;
+typedef unsigned int _size_t;
 #define PM_CHARACTERS 256
 
 
@@ -62,7 +63,7 @@ int pm_init(pm_t *);///////////////////////////////////////////////////////
 
 /* Adds a new string to the fsm, given that the string is of length n. 
    Returns 0 on success, -1 on failure.*/
-int pm_addstring(pm_t *,unsigned char *, size_t n);
+int pm_addstring(pm_t *, unsigned char *, _size_t n);
 
 /* Finalizes construction by setting up the failrue transitions, as
    well as the goto transitions of the zerostate. 
@@ -83,7 +84,7 @@ pm_state_t* pm_goto_get(pm_state_t *state,unsigned char symbol);
 
 /* Search for matches in a string of size n in the FSM. 
    if there are no matches return empty list */
-dbllist_t* pm_fsm_search(pm_state_t *,unsigned char *,size_t);
+dbllist_t* pm_fsm_search(pm_state_t *, unsigned char *, _size_t);
 
 
 
