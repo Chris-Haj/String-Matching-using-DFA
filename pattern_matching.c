@@ -58,16 +58,17 @@ int pm_addstring(pm_t *pat, unsigned char *symbol, _size_t n) {
     //copy the input into our new char * so we can free it in the end.
     unsigned char *output = (unsigned char *) malloc((n + 1) * sizeof(unsigned char));
     memcpy(output, symbol, n + 1);
-    if (dbllist_append(cur->output, output) == ERROR)
+    if (dbllist_append(cur->output, output) == ERROR) {
         return ERROR;
+    }
     return SUCCESS;
 }
 
 
 void FailureBetween(pm_state_t *root, pm_state_t *father, unsigned char symbol, pm_state_t *child) {
     pm_state_t *failure;
-    while ((failure = pm_goto_get(father, symbol))==NULL) {
-        if(father == root)
+    while ((failure = pm_goto_get(father, symbol)) == NULL) {
+        if (father == root)
             break;
         father = father->fail;
     }
@@ -79,8 +80,7 @@ void FailureBetween(pm_state_t *root, pm_state_t *father, unsigned char symbol, 
             curNode = dbllist_next(curNode);
         }
         printf("Setting f(%u) = %u\n", child->id, failure->id);
-    }
-    else
+    } else
         child->fail = root;
 }
 
@@ -145,7 +145,25 @@ pm_state_t *pm_goto_get(pm_state_t *state, unsigned char symbol) {
     return NULL; //return NULL if no state was found.
 }
 
-dbllist_t *pm_fsm_search(pm_state_t *state, unsigned char *symbol, _size_t size) { // fail_state = failure, next = to_state
+dbllist_t *pm_fsm_search(pm_state_t *state, unsigned char *symbol, _size_t size) {
+    if (!state || !symbol || !size)
+        return NULL;
+    dbllist_t *matched = alloc(dbllist_t);
+    if (!matched)
+        return NULL;
+    dbllist_init(matched);
+    for (int i = 0; i < size; i++) {
+        while(pm_goto_get(state,symbol[i])==NULL){
+            state = state->fail;
+        }
+        state = pm_goto_get(state,symbol[i]);
+        if(state->output->size > 0){
+
+        }
+    }
+}
+
+dbllist_t *pm_fs_search(pm_state_t *state, unsigned char *symbol, _size_t size) { // fail_state = failure, next = to_state
     if (!state || !symbol || !size)
         return NULL;
     dbllist_t *matcher = alloc(dbllist_t);
@@ -155,33 +173,35 @@ dbllist_t *pm_fsm_search(pm_state_t *state, unsigned char *symbol, _size_t size)
     pm_state_t *next;
     for (int i = 0; i < size; ++i) {
         next = pm_goto_get(state, symbol[i]);
-        pm_state_t *failure = next;
-        while (next) {
-            if (!failure->depth) {
+        pm_state_t *failure = state;
+        while (next==NULL) {
+            if (failure->depth==0) {
                 next = failure;
                 break;
             }
             failure = failure->fail; //Jump to next failure and attempt match
-            if (!failure) {
+            if (failure==NULL) {
                 dbllist_destroy(matcher, DBLLIST_FREE_DATA);
             }
             next = pm_goto_get(failure, symbol[i]);
         }
-        dbllist_t *outputs = next->output;
-        dbllist_node_t *curNode = dbllist_head(outputs);
-        pm_match_t *matchFinder;
-        while (curNode) { // While searching for similar outputs and current string, if found any pattern, create new match and assign its data according to indexes of substring
-            matchFinder = alloc(pm_match_t);
-            matchFinder->pattern = (char *) dbllist_data(curNode);
-            matchFinder->start_pos = (int) (i - strlen(matchFinder->pattern)) + 1;
-            matchFinder->end_pos = (int) (i);
-            matchFinder->fstate = next;
-            dbllist_append(matcher, matchFinder);
-            curNode = dbllist_next(curNode);
-        }
+            dbllist_t *outputs = next->output;
+            dbllist_node_t *curNode = dbllist_head(outputs);
+            pm_match_t *matchFinder;
+            while (curNode!=NULL) { // While searching for similar outputs and current string, if found any pattern, create new match and assign its data according to indexes of substring
+                matchFinder = alloc(pm_match_t);
+                matchFinder->pattern = (char *) dbllist_data(curNode);
+                matchFinder->start_pos = (int) (i - strlen(matchFinder->pattern)) + 1;
+                matchFinder->end_pos = (int) (i);
+                matchFinder->fstate = next;
+                printf("found pattern : %s ,start pos: %d , end pos: %d", matchFinder->pattern, matchFinder->start_pos, matchFinder->end_pos);
+                dbllist_append(matcher, matchFinder);
+                curNode = dbllist_next(curNode);
+            }
+
         state = next;
     }
-    return SUCCESS;
+    return matcher;
 }
 
 void destroyer(pm_state_t *state) { //Recursion function to destroy all tree

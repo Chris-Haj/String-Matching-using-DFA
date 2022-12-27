@@ -30,17 +30,17 @@ int InsertTest()
 {
     dbllist_t* list = (dbllist_t*)malloc(sizeof(dbllist_t));
     int expected[] = {
-        9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+            9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     };
 
     if (!list)
@@ -51,9 +51,9 @@ int InsertTest()
 
     dbllist_init(list);
     size_t numOfPrepends = 10;
-    
+
     for (size_t i = 0; i < numOfPrepends; i++)
-    {   
+    {
         // prepend adds an element at the start of the list
         // therefore, the index is from <numOfPrepends> to 0.
         dbllist_prepend(list,(void*)&expected[numOfPrepends - i - 1]);
@@ -65,14 +65,14 @@ int InsertTest()
             dbllist_append(list, (void*)&expected[numOfPrepends * (i + 1) + j]);
         }
     }
-    
+
     int isInPlace       = TEST_HAS_SUCCEEDED;
     dbllist_node_t* ptr = dbllist_head(list);
 
     for (size_t i = 0; i < sizeof(expected) / sizeof(int); i++)
     {
         int data = *((int*)dbllist_data(ptr));
-        
+
         if (data != expected[i])
         {
             isInPlace = TEST_HAS_FAILED;
@@ -101,7 +101,7 @@ int LeaveDestroyTest()
     }
 
     int* dataArray[5];
-    
+
     for (size_t i = 0; i < 5; i++)
     {
         dataArray[i] = (int*)malloc(sizeof(int));
@@ -132,7 +132,7 @@ int LeaveDestroyTest()
             isData = TEST_HAS_FAILED;
             break;
         }
-        
+
         if (dataArray[i][0] != i)
         {
             isData = TEST_HAS_FAILED;
@@ -161,7 +161,7 @@ int FreeDestroyTest()
     }
 
     int* dataArray[5];
-    
+
     for (size_t i = 0; i < 5; i++)
     {
         dataArray[i] = (int*)malloc(sizeof(int));
@@ -193,7 +193,9 @@ int FreeDestroyTest()
                 break;
             }
         }
+
     }
+
     return isData;
 }
 
@@ -241,7 +243,7 @@ int RemoveTest()
 
             return TEST_HAS_FAILED;
         }
-        
+
         ptr = dbllist_next(ptr);
     }
 
@@ -266,10 +268,10 @@ int RemoveTest()
 
             listEven = NULL;
             listOdd = NULL;
-            
+
             return TEST_HAS_FAILED;
         }
-        
+
         ptr = dbllist_next(ptr);
     }
 
@@ -294,10 +296,10 @@ int RemoveTest()
 
             listEven = NULL;
             listOdd = NULL;
-            
+
             return TEST_HAS_FAILED;
         }
-        
+
         ptr = dbllist_next(ptr);
     }
 
@@ -306,7 +308,7 @@ int RemoveTest()
     {
         dbllist_append(listOdd, (void*)&oddListData[i]);
     }
-    
+
     int expectedOdd[]           = {0, 1, 2, 4};
 
     removeMe    = dbllist_prev(dbllist_tail(listOdd));
@@ -327,10 +329,10 @@ int RemoveTest()
 
             listEven = NULL;
             listOdd = NULL;
-            
+
             return TEST_HAS_FAILED;
         }
-        
+
         ptr = dbllist_next(ptr);
     }
 
@@ -354,10 +356,10 @@ int RemoveTest()
 
             listEven = NULL;
             listOdd = NULL;
-            
+
             return TEST_HAS_FAILED;
         }
-        
+
         ptr = dbllist_next(ptr);
     }
 
@@ -370,7 +372,7 @@ int RemoveTest()
     for (size_t i = 0; i < 2; i++)
     {
         int data = *((int*)dbllist_data(ptr));
-        
+
         if (data != expectedOdd_2[i])
         {
             dbllist_destroy(listEven, DBLLIST_LEAVE_DATA);
@@ -381,10 +383,10 @@ int RemoveTest()
 
             listEven = NULL;
             listOdd = NULL;
-            
+
             return TEST_HAS_FAILED;
         }
-        
+
         ptr = dbllist_next(ptr);
     }
 
@@ -483,7 +485,7 @@ int FailureTransitionTest()
         pm_state_t* current = pm->zerostate;
 
         for (size_t j = 0; patterns[i][j] != '\0'; j++)
-        {   
+        {
             current = pm_goto_get(current, (unsigned char)patterns[i][j]);
 
             if (!current)
@@ -552,12 +554,13 @@ int PatternScanTest()
         return TEST_HAS_FAILED;
     }
 
+
     for (dbllist_node_t* ptr = dbllist_head(matchedPatterns); ptr != NULL; ptr = dbllist_next(ptr))
     {
         pm_match_t* match = (pm_match_t*)dbllist_data(ptr);
 
         for (size_t i = 0; i < eSize; i++)
-        {   
+        {
             // check if the current match is one of the expected matches.
             if (match->start_pos == expectedPositions[i][0] && match->end_pos == expectedPositions[i][1])
             {
@@ -589,7 +592,7 @@ int PatternScanTest()
 
     pm_destroy(pm);
     dbllist_destroy(matchedPatterns, DBLLIST_FREE_DATA);
-    
+
     free(pm);
     free(matchedPatterns);
 
@@ -599,38 +602,38 @@ int PatternScanTest()
     return TEST_HAS_SUCCEEDED;
 }
 
-int main(int argc, char* argv[])
-{
-    if(argc<2)
-        exit(1);
-    char *tester = "--pattern-scan";
+int main(){
 
-    if (strcmp(tester, "--init") == 0)
+
+    char *arg = "--pattern-scan";
+//    char *arg = argv[1];
+
+    if (strcmp(arg, "--init") == 0)
         return InitTest();
-    
-    else if (strcmp(tester, "--insert") == 0)
+
+    else if (strcmp(arg, "--insert") == 0)
         return InsertTest();
-    
-    else if (strcmp(tester, "--leave-destroy") == 0)
+
+    else if (strcmp(arg, "--leave-destroy") == 0)
         return LeaveDestroyTest();
-    
-    else if (strcmp(tester, "--free-destroy") == 0)
+
+    else if (strcmp(arg, "--free-destroy") == 0)
         return FreeDestroyTest();
-    
-    else if (strcmp(tester, "--remove") == 0)
+
+    else if (strcmp(arg, "--remove") == 0)
         return RemoveTest();
-    
-    else if (strcmp(tester, "--forward-transitions") == 0)
+
+    else if (strcmp(arg, "--forward-transitions") == 0)
         return ForwardTransitionTest();
-    
-    else if (strcmp(tester, "--failure-transitions") == 0)
+
+    else if (strcmp(arg, "--failure-transitions") == 0)
         return FailureTransitionTest();
-    
-    else if (strcmp(tester, "--pattern-scan") == 0)
+
+    else if (strcmp(arg, "--pattern-scan") == 0)
         return PatternScanTest();
-    
+
     else
-        printf("[!] Info: invalid test name: %s\n", tester);
-    
+        printf("[!] Info: invalid test name: %s\n", arg);
+
     return TEST_HAS_FAILED;
 }

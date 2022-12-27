@@ -19,17 +19,18 @@ void dbllist_init(dbllist_t *list) {
 void dbllist_destroy(dbllist_t *list, dbllist_destroy_t des) {
 
     dbllist_node_t *curNode = dbllist_head(list);
-    dbllist_node_t *next = curNode;
-    size_t size = list->size;
-    while (size) {
+    dbllist_node_t *next;
+    while (dbllist_size(list)) {
         next = dbllist_next(curNode);
         if (des == DBLLIST_FREE_DATA) {
             free(dbllist_data(curNode));
         }
         free(curNode);
         curNode = next;
-        size--;
+        dbllist_size(list)--;
     }
+    if(des == DBLLIST_FREE_DATA)
+        free(list);
 }
 
 int dbllist_append(dbllist_t *list, void *node) {
